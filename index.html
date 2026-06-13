@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROUTINE NEWS — daily motion & animation reader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&family=Noto+Serif+JP:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F5F2EC;        /* warm paper ground */
+  --paper-2:#FBFAF6;      /* card surface */
+  --ink:#221E1B;          /* deep warm charcoal */
+  --ink-soft:#5C544D;     /* secondary text */
+  --ink-faint:#938A80;    /* captions */
+  --wine:#7A2E3A;         /* the single accent — deep bordeaux */
+  --wine-soft:#A85462;
+  --sand:#B89B5E;         /* hairline / ornament only */
+  --rule:rgba(34,30,27,0.14);
+  --disp:'Fraunces',Georgia,serif;
+  --body:'Inter',system-ui,sans-serif;
+  --jp:'Noto Serif JP',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--body);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  padding:0 24px 80px;
+}
+
+/* ── MASTHEAD ─────────────────────────────────────── */
+.masthead{max-width:1080px;margin:0 auto;padding:38px 0 22px;border-bottom:1.5px solid var(--ink)}
+.mh-top{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:var(--ink-soft)}
+.mh-edition{color:var(--wine);font-weight:600}
+.mh-title{font-family:var(--disp);font-weight:500;font-size:clamp(38px,7vw,72px);line-height:0.96;letter-spacing:-0.01em;margin:14px 0 6px;font-optical-sizing:auto}
+.mh-title em{font-style:italic;color:var(--wine)}
+.mh-sub{font-family:var(--jp);font-size:13px;color:var(--ink-soft);letter-spacing:0.06em}
+.mh-rule-thin{max-width:1080px;margin:0 auto;height:1px;background:var(--rule)}
+
+/* ── FILTER BAR ───────────────────────────────────── */
+.filters{max-width:1080px;margin:20px auto 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.filters .flabel{font-size:10px;letter-spacing:0.24em;text-transform:uppercase;color:var(--ink-faint);margin-right:4px}
+.chip{font-family:var(--body);font-size:12px;letter-spacing:0.04em;padding:5px 13px;border:1px solid var(--rule);border-radius:999px;background:transparent;color:var(--ink-soft);cursor:pointer;transition:all .18s ease}
+.chip:hover{border-color:var(--wine-soft);color:var(--wine)}
+.chip.on{background:var(--wine);border-color:var(--wine);color:var(--paper-2)}
+
+/* ── FEED ─────────────────────────────────────────── */
+.feed{max-width:1080px;margin:30px auto 0}
+.daygroup{margin-bottom:42px}
+.dayhead{display:flex;align-items:baseline;gap:14px;margin-bottom:18px}
+.dayhead .d-date{font-family:var(--disp);font-style:italic;font-weight:500;font-size:22px;color:var(--ink)}
+.dayhead .d-line{flex:1;height:1px;background:var(--rule)}
+.dayhead .d-count{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-faint)}
+
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.card{background:var(--paper-2);border:1px solid var(--rule);border-radius:4px;padding:20px 22px 18px;display:flex;flex-direction:column;text-decoration:none;color:inherit;transition:border-color .2s ease,transform .2s ease;position:relative;overflow:hidden}
+.card:hover{border-color:var(--wine-soft);transform:translateY(-2px)}
+/* signature: a motion arc that draws in on hover, nodding to "kinetic" */
+.card::after{content:'';position:absolute;left:22px;bottom:14px;width:34px;height:34px;border:1.5px solid var(--wine);border-radius:50%;border-right-color:transparent;border-bottom-color:transparent;opacity:0;transform:rotate(-45deg) scale(.7);transition:opacity .3s ease,transform .45s cubic-bezier(.22,1,.36,1)}
+.card:hover::after{opacity:.5;transform:rotate(135deg) scale(1)}
+.c-eyebrow{display:flex;gap:10px;align-items:center;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:9px}
+.c-tag{color:var(--wine);font-weight:600}
+.c-src{margin-left:auto;color:var(--ink-faint)}
+.c-title{font-family:var(--disp);font-weight:500;font-size:20px;line-height:1.28;letter-spacing:-0.005em;margin-bottom:8px}
+.c-desc{font-family:var(--jp);font-size:13px;line-height:1.75;color:var(--ink-soft);margin-bottom:14px}
+.c-foot{margin-top:auto;font-size:11px;letter-spacing:0.06em;color:var(--wine);font-weight:500;display:flex;align-items:center;gap:6px}
+.c-foot .arrow{transition:transform .2s ease}
+.card:hover .c-foot .arrow{transform:translateX(3px)}
+
+.empty{max-width:1080px;margin:60px auto;text-align:center;font-family:var(--jp);color:var(--ink-faint);font-size:14px}
+
+footer{max-width:1080px;margin:60px auto 0;padding-top:20px;border-top:1px solid var(--rule);font-size:11px;letter-spacing:0.1em;color:var(--ink-faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+footer .f-mark{font-family:var(--disp);font-style:italic;color:var(--ink-soft)}
+
+@media(max-width:680px){
+  body{padding:0 16px 60px}
+  .grid{grid-template-columns:1fr}
+  .mh-top{flex-direction:column;gap:6px}
+}
+@media(prefers-reduced-motion:reduce){
+  .card,.card::after,.c-foot .arrow{transition:none}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="mh-top">
+    <span>Kinetic · Motion · Animation</span>
+    <span class="mh-edition" id="edition">EDITION —</span>
+  </div>
+  <h1 class="mh-title">Routine <em>News</em></h1>
+  <p class="mh-sub">世界の動きの表現を、毎朝ひとさじ。手で集めず、目だけ動かす読み物。</p>
+</header>
+<div class="mh-rule-thin"></div>
+
+<nav class="filters" id="filters">
+  <span class="flabel">Filter</span>
+  <!-- chips injected -->
+</nav>
+
+<main class="feed" id="feed"></main>
+
+<footer>
+  <span class="f-mark">Routine News — curated daily</span>
+  <span id="updated">—</span>
+</footer>
+
+<script>
+/* ── SAMPLE DATA ───────────────────────────────────────────────
+   差し替え対象。Routineが毎朝この配列を data.json として書き出す。
+   各項目: { date, tag, source, title, desc, url }
+   tag は下の TAGS に揃える。 */
+const TAGS = ['Motion','Creative Coding','作画TIPS','VJ / 映像'];
+
+const SAMPLE = [
+  { date:'2026-06-13', tag:'Motion', source:'Vimeo',
+    title:'Procedural title sequence study',
+    desc:'幾何モーフィングだけで構成されたタイトルバック。リード線の保持が参考になる。',
+    url:'#' },
+  { date:'2026-06-13', tag:'Creative Coding', source:'GitHub',
+    title:'WebGL transmission material demo',
+    desc:'屈折マテリアルの軽量実装。背景レンダーパスの間引き方が巧み。',
+    url:'#' },
+  { date:'2026-06-13', tag:'作画TIPS', source:'X',
+    title:'予備動作の溜めフレーム配分',
+    desc:'ジャンプ前のスクワッシュを何フレーム取るか、実作画の内訳解説。',
+    url:'#' },
+  { date:'2026-06-13', tag:'VJ / 映像', source:'Instagram',
+    title:'リアルタイム結晶生成のループ',
+    desc:'インスタンス描画でのファセット表現。Mixモードの色設計が綺麗。',
+    url:'#' },
+  { date:'2026-06-13', tag:'Motion', source:'Dribbble',
+    title:'Easing showcase — slow in / out',
+    desc:'12原則のスローイン/アウトを並列比較したインタラクティブ作例。',
+    url:'#' },
+  { date:'2026-06-13', tag:'作画TIPS', source:'YouTube',
+    title:'アークを意識した手の軌道',
+    desc:'関節運動を直線でなく弧で結ぶ。中割りの位置取りの考え方。',
+    url:'#' },
+];
+
+let DATA = SAMPLE;
+let active = 'All';
+
+const feed = document.getElementById('feed');
+const filters = document.getElementById('filters');
+
+function fmtDate(iso){
+  const d = new Date(iso+'T00:00:00');
+  return d.toLocaleDateString('ja-JP',{month:'long',day:'numeric',weekday:'short'});
+}
+
+function buildChips(){
+  const all = document.createElement('button');
+  all.className='chip on'; all.textContent='All';
+  all.onclick=()=>setFilter('All',all);
+  filters.appendChild(all);
+  TAGS.forEach(t=>{
+    const c=document.createElement('button');
+    c.className='chip'; c.textContent=t;
+    c.onclick=()=>setFilter(t,c);
+    filters.appendChild(c);
+  });
+}
+function setFilter(t,el){
+  active=t;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  render();
+}
+
+function render(){
+  const items = active==='All' ? DATA : DATA.filter(d=>d.tag===active);
+  feed.innerHTML='';
+  if(!items.length){
+    feed.innerHTML='<p class="empty">この分類の記事はまだありません。明日の更新をどうぞ。</p>';
+    return;
+  }
+  // group by date, newest first
+  const byDate={};
+  items.forEach(it=>{(byDate[it.date]=byDate[it.date]||[]).push(it)});
+  const dates=Object.keys(byDate).sort().reverse();
+  dates.forEach(dt=>{
+    const group=document.createElement('section');
+    group.className='daygroup';
+    group.innerHTML=`<div class="dayhead">
+      <span class="d-date">${fmtDate(dt)}</span>
+      <span class="d-line"></span>
+      <span class="d-count">${byDate[dt].length} items</span>
+    </div>`;
+    const grid=document.createElement('div');
+    grid.className='grid';
+    byDate[dt].forEach(it=>{
+      const a=document.createElement('a');
+      a.className='card'; a.href=it.url||'#';
+      if(it.url&&it.url!=='#'){a.target='_blank';a.rel='noopener'}
+      a.innerHTML=`
+        <div class="c-eyebrow">
+          <span class="c-tag">${it.tag}</span>
+          <span class="c-src">${it.source||''}</span>
+        </div>
+        <h3 class="c-title">${it.title}</h3>
+        <p class="c-desc">${it.desc||''}</p>
+        <span class="c-foot">読む <span class="arrow">→</span></span>`;
+      grid.appendChild(a);
+    });
+    group.appendChild(grid);
+    feed.appendChild(group);
+  });
+}
+
+function setMeta(){
+  const dates=[...new Set(DATA.map(d=>d.date))].sort().reverse();
+  if(dates.length){
+    document.getElementById('updated').textContent='Last updated '+fmtDate(dates[0]);
+    document.getElementById('edition').textContent='EDITION '+dates[0].replace(/-/g,'.');
+  }
+}
+
+// try to load real data.json (Routine writes it), fall back to sample
+fetch('data.json',{cache:'no-store'})
+  .then(r=>{if(!r.ok)throw 0;return r.json()})
+  .then(j=>{if(Array.isArray(j)&&j.length){DATA=j}})
+  .catch(()=>{/* keep SAMPLE */})
+  .finally(()=>{buildChips();setMeta();render()});
+</script>
+</body>
+</html>
